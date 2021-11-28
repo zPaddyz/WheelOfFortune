@@ -9,6 +9,11 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
@@ -18,19 +23,20 @@ import com.example.wheeloffortune.ui.theme.WheelOfFortuneTheme
 
 
 class MainActivity : ComponentActivity() {
+    @ExperimentalComposeUiApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WheelOfFortuneTheme {
                 val navController = rememberNavController()
-
-                NavHost(navController, "HomeScreen") {
+                NavHost(navController, "n) {
                     composable("HomeScreen") {
                         HomeScreen(navController, this@MainActivity)
                     }
-                    /*composable("RecipeScreen") {
-                        RecipeScreen(navController)
-                    }*/
+
+                    composable("winningScreen") {
+                        winningScreen(navController)
+                    }
                 }
                 // A surface container using the 'background' color from the theme
                 /*Surface(color = MaterialTheme.colors.background) {
