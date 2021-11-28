@@ -147,7 +147,7 @@ fun game(navController: NavController): String {
         )
     )
     if(vandt){
-        navController.navigate("winningScreen")
+        navController.popBackStack("winningScreen",false)
     }
 
     return svar

@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             WheelOfFortuneTheme {
                 val navController = rememberNavController()
-                NavHost(navController, "n) {
+                NavHost(navController, "winningScreen") {
                     composable("HomeScreen") {
                         HomeScreen(navController, this@MainActivity)
                     }
