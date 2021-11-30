@@ -1,17 +1,11 @@
 package com.example.wheeloffortune
 
 import android.content.Context
-import android.view.animation.Interpolator
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
+import android.widget.Toast
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -19,26 +13,47 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.math.MathUtils
 import androidx.navigation.NavController
-import com.google.android.material.animation.AnimationUtils.lerp
-import com.google.android.material.math.MathUtils.*
 import kotlin.text.StringBuilder
 
 var allPoints = 0
 
+@ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
 fun HomeScreen(navController: NavController, context : Context) {
-    Greeting(context, navController)
+    Box(){
+        Image(
+            painterResource(R.drawable.rainbow),
+            contentDescription = "baggrund",
+            modifier = Modifier
+                .fillMaxHeight()
+                .scale(3f, 4f)
+        )
+        Greeting(context, navController)
+
+    }
+    /*Canvas(modifier = Modifier.fillMaxSize(),) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        drawLine(
+            start = Offset(x = canvasWidth, y = 0f),
+            end = Offset(x = 0f, y = canvasHeight),
+            color = Color.Blue
+        )
+    }*/
 }
 
 @Composable
@@ -54,55 +69,86 @@ private fun HomeScreenContent(){
 
 @Composable
 fun lykkehjul(rotation : Float){
+
     Image(
-        //modifier = Modifier.rotateBy(currentAngle, angle), //Custom Modifier
-        // rest of the code for image
         painterResource(R.drawable.arrow),
         contentDescription = "pil",
         modifier = Modifier
-            .padding(0.dp, 0.dp, 0.dp, 0.dp)
             .size(40.dp)
             .rotate(180f)
+            .absoluteOffset(0.dp, -(40).dp)
     )
     Image(
-        //modifier = Modifier.rotateBy(currentAngle, angle), //Custom Modifier
-        // rest of the code for image
         painterResource(R.drawable.lykkehjullet),
         contentDescription = "Lykkehjul",
         modifier = Modifier
-            .padding(0.dp, 0.dp, 0.dp, 10.dp)
-            .size(250.dp)
+            .padding(0.dp, 35.dp, 0.dp, 0.dp)
+            .size(300.dp)
             .rotate(rotation)
+
     )
 }
 
+@ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
 fun Greeting(context: Context, navController: NavController) {
-    Column(modifier = Modifier.width(500.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
+    Column(/*modifier = Modifier.width(500.dp), horizontalAlignment = Alignment.CenterHorizontally*/) {
+        /*Text(
             text = "Velkommen til Lykkethjulet!",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-        )
+        )*/
         playButton(context = context, navController)
+
     }
 
 }
 
 var currentRora = 0f
 
+@ExperimentalAnimationApi
+@Composable
+fun velkommenTekst(synlig:Boolean){
 
+    val density = LocalDensity.current
+    AnimatedVisibility(
+        visible = synlig,
+        enter = slideInVertically(
+            // Slide in from 40 dp from the top.
+            initialOffsetY = { with(density) { -40.dp.roundToPx() } }
+        ) + expandVertically(
+            // Expand from the top.
+            expandFrom = Alignment.Top
+        ) + fadeIn(
+            // Fade in with the initial alpha of 0.3f.
+            initialAlpha = 0.3f
+        ),
+        exit = slideOutVertically() + shrinkVertically() + fadeOut()
+    ){
+
+        Text(
+            text = "Velkommen til Lykkethjulet!",
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            fontFamily = FontFamily.Serif
+        )
+    }
+}
+
+@ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
 fun playButton(context: Context, navController: NavController){
     var currentRotation by rememberSaveable() {mutableStateOf(0f)}
-    //lykkehjul(currentRora)
 
-
+    var synlig by remember { mutableStateOf(false) }
+    //velkommenTekst(synlig)
 
     var visible by remember { mutableStateOf(true) }
+
     if(visible) {
         currentRotation += 0.5f
         currentRora = currentRotation
@@ -113,7 +159,7 @@ fun playButton(context: Context, navController: NavController){
                 //println("Grader før første roll " + currentRora)
                 //currentRora = (0..360).random().toFloat()
                 //println("Grader efter første roll " + currentRora)
-
+                synlig = true
                 visible = false
                 //Toast.makeText(context, "Ord fundet", Toast.LENGTH_LONG).show()
             },
@@ -122,162 +168,202 @@ fun playButton(context: Context, navController: NavController){
             Text(text = "Start Spil")
         }
     } else {
-        game(navController)
+        game(navController,context)
     }
-}
-
-@Composable
-fun spin(){
-    currentRora = (0..360).random().toFloat()
 }
 
 @ExperimentalComposeUiApi
 @Composable
-fun game(navController: NavController): String {
+fun game(navController: NavController, context: Context): String {
     var currentRotation by rememberSaveable() {mutableStateOf(0f)}
     var svar by rememberSaveable { mutableStateOf("") }
     val svarFelt: StringBuilder = remember{ StringBuilder() }
-    val randomX by rememberSaveable {mutableStateOf((7..7).random())}
+    val randomX by rememberSaveable {mutableStateOf((3..3).random())}
     var bogstav by rememberSaveable { mutableStateOf("")}
     var vandt by rememberSaveable { mutableStateOf(false)}
     var tabte by rememberSaveable { mutableStateOf(false)}
     var antalLiv by rememberSaveable() {mutableStateOf(5)}
     val keyboardController = LocalSoftwareKeyboardController.current
     var korrekteBogstaver by rememberSaveable() {mutableStateOf(0)}
-    var rollet by rememberSaveable { mutableStateOf(false)}
+    var rollet by rememberSaveable { mutableStateOf(1)}
+    var kategori by rememberSaveable { mutableStateOf("")}
+    Column() {
+        Box(){
+            Row{
+                for (i in 1..antalLiv) {
+                    Image(
+                        painterResource(R.drawable.heart2),
+                        contentDescription = "Liv",
+                        modifier = Modifier
+                            .size(50.dp)
+                            .graphicsLayer(translationX = 10f)
+                    )
+                }
+            }
+            Column(modifier = Modifier.width(500.dp),horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "Din kategori er: \n $kategori", fontSize = 20.sp, modifier = Modifier
+                    .absoluteOffset(0.dp,50.dp))
+                when(randomX){
+                    0 -> {
+                        //Text(text = "Et Navn\n", fontSize = 20.sp)
+                        kategori = "Et Navn"
+                        svar = "Sophie"
+                    }
+                    1 -> {
+                        //Text(text = "Et Navn \n", fontSize = 20.sp)
+                        kategori = "Et Navn"
+                        svar = "Trine"
+                    }
+                    2 -> {
+                        //Text(text = "Et Navn\n", fontSize = 20.sp)
+                        kategori = "Et Navn"
+                        svar = "Jørgen"
+                    }
+                    3 -> {
+                        //Text(text = "Et Bilmærke \n", fontSize = 20.sp)
+                        kategori = "Et Bilmærke"
+                        svar = "Volkswagen"
+                    }
+                    4 -> {
+                        //Text(text = "Et Bilmærke \n", fontSize = 20.sp)
+                        kategori = "Et Bilmærke"
+                        svar = "Ford"
+                    }
+                    5 -> {
+                        //Text(text = "Et Bilmærke \n", fontSize = 20.sp)
+                        kategori = "Et Bilmærke"
+                        svar = "Porche"
+                    }
+                    6 -> {
+                        //Text(text = "En Grøntsag \n", fontSize = 20.sp)
+                        kategori = "En Grøntsag"
+                        svar = "Tomat"
+                    }
+                    7 -> {
+                        //Text(text = "En Grøntsag \n", fontSize = 20.sp)
+                        kategori = "En Grøntsag"
+                        svar = "Selleri"
+                    }
+                }
+                lykkehjul(rotation = currentRotation)
 
-    lykkehjul(currentRotation)
+                if(svarFelt.isEmpty()) {
+                    for (i in svar) {
+                        svarFelt.insert(0,"_")
+                    }
+                }
+                Box() {
+                    Row() {
+                        if(svarFelt.isNotEmpty()){
+                        if(svar.length-1 < 8){
+                            for (i in 0..svar.length-1) {
+                                Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 45.sp,modifier = Modifier
+                                    .border(3.dp, Color.LightGray)
+                                    .size(55.dp))
+                            }
+                        } else {
+                            for (i in 0..svar.length-1) {
+                                Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 40.sp,modifier = Modifier
+                                    .border(3.dp, Color.LightGray)
+                                    .size(42.dp)
+                                    .absoluteOffset(0.dp, (-8).dp)
+                                    )
 
-    Row() {
-        for (i in 1..antalLiv) {
-            Image(
-                painterResource(R.drawable.heart2),
-                contentDescription = "Liv",
-                modifier = Modifier
-                    .size(50.dp)
-                    .border(2.dp, Color.Gray)
-            )
-        }
-    }
-    Text(text = "Din kategori er: ", fontSize = 20.sp)
-
-    when(randomX){
-        0 -> {
-            Text(text = "Et Navn\n", fontSize = 20.sp)
-            svar = "Sophie"
-        }
-        1 -> {
-            Text(text = "Et Navn \n", fontSize = 20.sp)
-            svar = "Trine"
-        }
-        2 -> {
-            Text(text = "Et Navn\n", fontSize = 20.sp)
-            svar = "Jørgen"
-        }
-        3 -> {
-            Text(text = "Et Bilmærke \n", fontSize = 20.sp)
-            svar = "Volkswagen"
-        }
-        4 -> {
-            Text(text = "Et Bilmærke \n", fontSize = 20.sp)
-            svar = "Ford"
-        }
-        5 -> {
-            Text(text = "Et Bilmærke \n", fontSize = 20.sp)
-            svar = "Porche"
-        }
-        6 -> {
-            Text(text = "En Grønsag \n", fontSize = 20.sp)
-            svar = "Tomat"
-        }
-        7 -> {
-            Text(text = "En Grønsag \n", fontSize = 20.sp)
-            svar = "Selleri"
-        }
-    }
-
-    if(svarFelt.isEmpty()) {
-        for (i in svar) {
-            svarFelt.insert(0,"_")
-        }
-    }
-    Text(text = svarFelt.toString(),
-        fontSize = 30.sp,
-        letterSpacing = 5.sp)
-
-    if(rollet) {
-        TextField(
-            enabled = true,
-            value = bogstav,
-            onValueChange = {
-
-                if (bogstav.isEmpty()) {
-                    korrekteBogstaver = 0
-                    bogstav = it
-                    var ingenPasser = true
-                    if (bogstav.isEmpty() || bogstav[0].isDigit()) bogstav = " "
-                    for (i in svar.indices) {
-                        if (bogstav[0] == svar[i]) {
-                            svarFelt.replace(i, i + 1, bogstav[0].toString())
-                            println(svarFelt)
-                            ingenPasser = false
-                            korrekteBogstaver++
-                            println("antal korrekte bogstaver:" + korrekteBogstaver)
+                            }
                         }
-                    }
-                    if (ingenPasser && bogstav != " ") antalLiv -= 1
-                    if (antalLiv == 0) tabte = true
-                    if (svarFelt.toString() == (svar)) {
-                        vandt = true
-                    }
+                        }
 
-                    keyboardController?.hide()
-                    rollet = false
+                    }
 
                 }
 
-            },
-            label = { Text("Gæt et bogstav") },
-            singleLine = true
-        )
-    } else {
-        Button(onClick = {
-            currentRotation = (0..360).random().toFloat()
-            println(currentRotation)
-            bogstav = ""
-            rollet = true
-        }) {
-            Text(text = "Tryk her at spinne lykkehjullet!")
-        }
-    }
-    if(!rollet){
-        when {
-            pointSystem(rotation = currentRotation) > 2 -> {
-                allPoints += (korrekteBogstaver * pointSystem(currentRotation))
-            }
-            pointSystem(rotation = currentRotation)==0 -> {
-                allPoints = 0
-            }
-            pointSystem(rotation = currentRotation)==1 -> {
-                antalLiv ++
-            }
-            pointSystem(rotation = currentRotation)==2 -> {
-                antalLiv --
-            }
-        }
-        println(korrekteBogstaver.toString() + "Rigtige, Du har nu: " + allPoints + " point")
-    }
+                    if(rollet == 0) {
+                        TextField(
+                            enabled = true,
+                            value = bogstav,
+                            onValueChange = {
+
+                                if (bogstav.isEmpty()) {
+                                    korrekteBogstaver = 0
+                                    bogstav = it
+                                    var ingenPasser = true
+                                    if (bogstav.isEmpty() || bogstav[0].isDigit()) bogstav = " "
+                                    for (i in svar.indices) {
+                                        if (bogstav[0] == svar[i]) {
+                                            svarFelt.replace(i, i + 1, bogstav[0].toString())
+                                            println(svarFelt)
+                                            ingenPasser = false
+                                            korrekteBogstaver++
+                                            println("antal korrekte bogstaver:" + korrekteBogstaver)
+                                        }
+                                    }
+                                    if (ingenPasser && bogstav != " ") antalLiv -= 1
+                                    if (antalLiv <= 0) tabte = true
+                                    if (svarFelt.toString() == (svar)) {
+                                        vandt = true
+                                    }
+
+                                    keyboardController?.hide()
+                                    rollet = 1
+
+                                }
+
+                            },
+                            label = { Text("Gæt et bogstav") },
+                            singleLine = true,
+                            modifier = Modifier.absoluteOffset(0.dp,10.dp)
+                        )
+                    } else if(rollet == 1 || rollet == 3){
+                        Button(onClick = {
+                            currentRotation = (0..360).random().toFloat()
+                            //currentRotation = 254f
+                            println(currentRotation)
+                            bogstav = ""
+                            rollet = 0
+                        }, modifier = Modifier.absoluteOffset(0.dp,10.dp)) {
+                            Text(text = "Tryk her at spinne lykkehjullet!")
+                        }
+                    }
+
+                if(rollet == 1){
+                        when (pointSystem(rotation = currentRotation)){
+                            0 -> {
+                                if (allPoints!=0) Toast.makeText(context, "Du ramte FALLIT og mister alle dine point!", Toast.LENGTH_SHORT).show()
+                                allPoints = 0
+                            }
+                            1 -> {
+                                antalLiv ++
+                                Toast.makeText(context, "Du ramte Ekstra Tur og modtager et ekstra liv!", Toast.LENGTH_SHORT).show()
+                            }
+                            2 -> {
+                                antalLiv --
+                                Toast.makeText(context, "Du ramte Jokeren og mister et liv!", Toast.LENGTH_SHORT).show()
+                            }
+                            else -> {
+                                allPoints += (korrekteBogstaver * pointSystem(currentRotation))
+                                Toast.makeText(context, "Du havde $korrekteBogstaver. rigtige bogstaver og får: " + (korrekteBogstaver * pointSystem(currentRotation)) + " point!" , Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    rollet = 3
+                        //println("$korrekteBogstaver Rigtige, Du har nu: $allPoints point")
+                    }
 
 
-    if(vandt){
-        allPoints = 0
-        navController.popBackStack("winningScreen",false)
+                    if(vandt){
+                        allPoints = 0
+                        navController.popBackStack("winningScreen",false)
+                    }
+                    if(tabte){
+                        allPoints = 0
+                        navController.popBackStack("winningScreen",false)
+                    }
+                    Text(text = "Point: $allPoints!",fontSize = 35.sp, /*modifier = Modifier.graphicsLayer(translationX = 300f, translationY = (-1200f))*/)
+                }
+            }
+
+
+
     }
-    if(tabte){
-        allPoints = 0
-        navController.popBackStack("winningScreen",false)
-    }
-    Text(text = "Du har: "+allPoints+ " point!",fontSize = 20.sp)
     return svar
 }
 
@@ -286,7 +372,7 @@ private fun pointSystem(rotation : Float): Int {
     var points = 0
 
     when {
-        rotation > 0 && rotation < 16.4f -> {
+        rotation >= 0 && rotation < 16.4f -> {
             points = 0
         }
         rotation > 16.4 && rotation < 32.8f -> {
@@ -355,6 +441,6 @@ private fun pointSystem(rotation : Float): Int {
             points = 1500
         }
     }
-    println("Du står på: " + points + " Points")
+    println("Du står på plads: " + points + "")
     return points
 }
