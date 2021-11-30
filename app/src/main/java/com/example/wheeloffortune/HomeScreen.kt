@@ -6,7 +6,11 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -21,11 +25,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import kotlin.text.StringBuilder
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.FileReader
+import java.io.FileWriter
 
 var allPoints = 0
 
@@ -44,28 +52,7 @@ fun HomeScreen(navController: NavController, context : Context) {
         Greeting(context, navController)
 
     }
-    /*Canvas(modifier = Modifier.fillMaxSize(),) {
-        val canvasWidth = size.width
-        val canvasHeight = size.height
-
-        drawLine(
-            start = Offset(x = canvasWidth, y = 0f),
-            end = Offset(x = 0f, y = canvasHeight),
-            color = Color.Blue
-        )
-    }*/
 }
-
-@Composable
-private fun HomeScreenContent(){
-    Surface(
-        color = MaterialTheme.colors.background,
-        //modifier = Modifier.fillMaxSize()
-    ){
-
-    }
-}
-
 
 @Composable
 fun lykkehjul(rotation : Float){
@@ -93,15 +80,8 @@ fun lykkehjul(rotation : Float){
 @ExperimentalComposeUiApi
 @Composable
 fun Greeting(context: Context, navController: NavController) {
-    Column(/*modifier = Modifier.width(500.dp), horizontalAlignment = Alignment.CenterHorizontally*/) {
-        /*Text(
-            text = "Velkommen til Lykkethjulet!",
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-        )*/
+    Column {
         playButton(context = context, navController)
-
     }
 
 }
@@ -178,7 +158,7 @@ fun game(navController: NavController, context: Context): String {
     var currentRotation by rememberSaveable() {mutableStateOf(0f)}
     var svar by rememberSaveable { mutableStateOf("") }
     val svarFelt: StringBuilder = remember{ StringBuilder() }
-    val randomX by rememberSaveable {mutableStateOf((3..3).random())}
+    val randomX by rememberSaveable {mutableStateOf((0..7).random())}
     var bogstav by rememberSaveable { mutableStateOf("")}
     var vandt by rememberSaveable { mutableStateOf(false)}
     var tabte by rememberSaveable { mutableStateOf(false)}
@@ -255,117 +235,146 @@ fun game(navController: NavController, context: Context): String {
                 Box() {
                     Row() {
                         if(svarFelt.isNotEmpty()){
-                        if(svar.length-1 < 8){
-                            for (i in 0..svar.length-1) {
-                                Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 45.sp,modifier = Modifier
-                                    .border(3.dp, Color.LightGray)
-                                    .size(55.dp))
-                            }
-                        } else {
-                            for (i in 0..svar.length-1) {
-                                Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 40.sp,modifier = Modifier
-                                    .border(3.dp, Color.LightGray)
-                                    .size(42.dp)
-                                    .absoluteOffset(0.dp, (-8).dp)
+                            if(svar.length-1 < 8){
+                                for (i in 0..svar.length-1) {
+                                    Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 45.sp,modifier = Modifier
+                                        .border(3.dp, Color.LightGray)
+                                        .size(55.dp))
+                                }
+                            } else {
+                                for (i in 0..svar.length-1) {
+                                    Text(text = ""+svarFelt[i], textAlign = TextAlign.Center, fontSize = 40.sp,modifier = Modifier
+                                        .border(3.dp, Color.LightGray)
+                                        .size(42.dp)
+                                        .absoluteOffset(0.dp, (-8).dp)
                                     )
 
+                                }
                             }
-                        }
                         }
 
                     }
 
                 }
 
-                    if(rollet == 0) {
-                        TextField(
-                            enabled = true,
-                            value = bogstav,
-                            onValueChange = {
+                if(rollet == 0) {
+                    TextField(
+                        enabled = true,
+                        value = bogstav,
+                        onValueChange = {
 
-                                if (bogstav.isEmpty()) {
-                                    korrekteBogstaver = 0
-                                    bogstav = it
-                                    var ingenPasser = true
-                                    if (bogstav.isEmpty() || bogstav[0].isDigit()) bogstav = " "
-                                    for (i in svar.indices) {
-                                        if (bogstav[0] == svar[i]) {
-                                            svarFelt.replace(i, i + 1, bogstav[0].toString())
-                                            println(svarFelt)
-                                            ingenPasser = false
-                                            korrekteBogstaver++
-                                            println("antal korrekte bogstaver:" + korrekteBogstaver)
-                                        }
+                            if (bogstav.isEmpty()) {
+                                korrekteBogstaver = 0
+                                bogstav = it
+                                var ingenPasser = true
+                                if (bogstav.isEmpty() || bogstav[0].isDigit()) bogstav = " "
+                                for (i in svar.indices) {
+                                    if (bogstav[0] == svar[i]) {
+                                        svarFelt.replace(i, i + 1, bogstav[0].toString())
+                                        println(svarFelt)
+                                        ingenPasser = false
+                                        korrekteBogstaver++
+                                        println("antal korrekte bogstaver:" + korrekteBogstaver)
                                     }
-                                    if (ingenPasser && bogstav != " ") antalLiv -= 1
-                                    if (antalLiv <= 0) tabte = true
-                                    if (svarFelt.toString() == (svar)) {
-                                        vandt = true
-                                    }
-
-                                    keyboardController?.hide()
-                                    rollet = 1
-
+                                }
+                                if (ingenPasser && bogstav != " ") antalLiv -= 1
+                                if (antalLiv <= 0) tabte = true
+                                if (svarFelt.toString() == (svar)) {
+                                    vandt = true
+                                    rollet = 4
                                 }
 
-                            },
-                            label = { Text("Gæt et bogstav") },
-                            singleLine = true,
-                            modifier = Modifier.absoluteOffset(0.dp,10.dp)
-                        )
-                    } else if(rollet == 1 || rollet == 3){
-                        Button(onClick = {
-                            currentRotation = (0..360).random().toFloat()
-                            //currentRotation = 254f
-                            println(currentRotation)
-                            bogstav = ""
-                            rollet = 0
-                        }, modifier = Modifier.absoluteOffset(0.dp,10.dp)) {
-                            Text(text = "Tryk her at spinne lykkehjullet!")
-                        }
+                                keyboardController?.hide()
+                                if(rollet != 4) rollet = 1
+
+                            }
+
+                        },
+                        label = { Text("Gæt et bogstav") },
+                        singleLine = true,
+                        modifier = Modifier.absoluteOffset(0.dp,10.dp)
+                    )
+                } else if(rollet == 1 || rollet == 3){
+                    Button(onClick = {
+                        currentRotation = (0..360).random().toFloat()
+                        //currentRotation = 254f
+                        println(currentRotation)
+                        bogstav = ""
+                        rollet = 0
+                    }, modifier = Modifier.absoluteOffset(0.dp,10.dp)) {
+                        Text(text = "Tryk her at spinne lykkehjullet!")
                     }
+                }
 
                 if(rollet == 1){
-                        when (pointSystem(rotation = currentRotation)){
-                            0 -> {
-                                if (allPoints!=0) Toast.makeText(context, "Du ramte FALLIT og mister alle dine point!", Toast.LENGTH_SHORT).show()
-                                allPoints = 0
-                            }
-                            1 -> {
-                                antalLiv ++
-                                Toast.makeText(context, "Du ramte Ekstra Tur og modtager et ekstra liv!", Toast.LENGTH_SHORT).show()
-                            }
-                            2 -> {
-                                antalLiv --
-                                Toast.makeText(context, "Du ramte Jokeren og mister et liv!", Toast.LENGTH_SHORT).show()
-                            }
-                            else -> {
-                                allPoints += (korrekteBogstaver * pointSystem(currentRotation))
-                                Toast.makeText(context, "Du havde $korrekteBogstaver. rigtige bogstaver og får: " + (korrekteBogstaver * pointSystem(currentRotation)) + " point!" , Toast.LENGTH_SHORT).show()
-                            }
+                    when (pointSystem(rotation = currentRotation)){
+                        0 -> {
+                            if (allPoints!=0) Toast.makeText(context, "Du ramte FALLIT og mister alle dine point!", Toast.LENGTH_SHORT).show()
+                            allPoints = 0
                         }
+                        1 -> {
+                            antalLiv ++
+                            Toast.makeText(context, "Du ramte Ekstra Tur og modtager et ekstra liv!", Toast.LENGTH_SHORT).show()
+                        }
+                        2 -> {
+                            antalLiv --
+                            Toast.makeText(context, "Du ramte Jokeren og mister et liv!", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            allPoints += (korrekteBogstaver * pointSystem(currentRotation))
+                            Toast.makeText(context, "Du havde $korrekteBogstaver. rigtige bogstaver og får: " + (korrekteBogstaver * pointSystem(currentRotation)) + " point!" , Toast.LENGTH_SHORT).show()
+                        }
+                    }
                     rollet = 3
-                        //println("$korrekteBogstaver Rigtige, Du har nu: $allPoints point")
-                    }
+                    //println("$korrekteBogstaver Rigtige, Du har nu: $allPoints point")
+                }
+
+                Text(text = "Point: $allPoints!",fontSize = 35.sp)
+                if(vandt || tabte){
+                    val path = context.filesDir
+                    var navnInput by rememberSaveable { mutableStateOf("") }
+
+                    //midlertidig reset til text fil
+                    //BufferedWriter(FileWriter("$path/test2.txt",false)).use {it.write("") }
+
+                    TextField(value = navnInput, singleLine = true,label = { Text(text = "Indtast dit navn og gem dit score")},onValueChange = {
+                        navnInput = it
+                    }, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+
+                                println((BufferedReader(FileReader("$path/test2.txt")).readLines()).size.toString()+" Så stor er den")
+                                /*for (string in 0..BufferedReader(FileReader("$path/test2.txt")).readLines().size-1){
+                                    val result = BufferedReader(FileReader("$path/test2.txt")).readLines().get(string)
+                                    val s2 = result.replace("[^0-9]".toRegex(), "")
+                                    val s3 = s2.toInt()
+                                    println(s3)
+                                    if(allPoints > s3) break
+
+                                }*/
+                                val textfil = BufferedReader(FileReader("$path/test2.txt")).readText()
+
+                                //BufferedWriter(FileWriter("$path/test2.txt",true)).use {it.write("$allPoints - $navnInput\n")}
 
 
-                    if(vandt){
-                        allPoints = 0
-                        navController.popBackStack("winningScreen",false)
-                    }
-                    if(tabte){
-                        allPoints = 0
-                        navController.popBackStack("winningScreen",false)
-                    }
-                    Text(text = "Point: $allPoints!",fontSize = 35.sp, /*modifier = Modifier.graphicsLayer(translationX = 300f, translationY = (-1200f))*/)
+                                BufferedWriter(FileWriter("$path/test2.txt",true)).use {it.write("$allPoints - $navnInput\n")}
+
+                                allPoints = 0
+                                vandt = false
+                                tabte = false
+
+                                navController.popBackStack("winningScreen",false)}
+                        ))
                 }
             }
+        }
 
 
 
     }
     return svar
 }
+
 
 @Composable
 private fun pointSystem(rotation : Float): Int {
