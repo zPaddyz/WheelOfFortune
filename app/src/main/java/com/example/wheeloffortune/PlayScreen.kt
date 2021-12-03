@@ -32,10 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import java.io.BufferedReader
-import java.io.BufferedWriter
-import java.io.FileReader
-import java.io.FileWriter
+import java.io.*
 
 var allPoints = 0
 
@@ -51,6 +48,7 @@ fun PlayScreen(navController: NavController, context : Context) {
                 .fillMaxHeight()
                 .scale(3f, 4f)
         )
+        //File(context.filesDir.toString()+"/test2.txt").delete()
         game(navController,context)
 
     }
@@ -81,18 +79,19 @@ private fun lykkehjul(rotation : Float){
 @ExperimentalComposeUiApi
 @Composable
 fun game(navController: NavController, context: Context): String {
-    var currentRotation by rememberSaveable() {mutableStateOf(0f)}
-    var svar by rememberSaveable { mutableStateOf("") }
+    //TODO Variabler skal optimeres
+    var currentRotation by remember {mutableStateOf(0f)}
+    var svar by remember { mutableStateOf("") }
     val svarFelt: StringBuilder = remember{ StringBuilder() }
-    val randomX by rememberSaveable {mutableStateOf((0..12).random())}
-    var bogstav by rememberSaveable { mutableStateOf("")}
-    var vandt by rememberSaveable { mutableStateOf(false)}
-    var tabte by rememberSaveable { mutableStateOf(false)}
-    var antalLiv by rememberSaveable() {mutableStateOf(5)}
+    val randomX by remember {mutableStateOf((0..12).random())}
+    var bogstav by remember { mutableStateOf("")}
+    var vandt by remember{ mutableStateOf(false)}
+    var tabte by remember { mutableStateOf(false)}
+    var antalLiv by remember {mutableStateOf(5)}
     val keyboardController = LocalSoftwareKeyboardController.current
-    var korrekteBogstaver by rememberSaveable() {mutableStateOf(0)}
-    var rollet by rememberSaveable { mutableStateOf(1)}
-    var kategori by rememberSaveable { mutableStateOf("")}
+    var korrekteBogstaver by remember {mutableStateOf(0)}
+    var rollet by remember { mutableStateOf(1)}
+    var kategori by remember { mutableStateOf("")}
 
 
     Column() {
@@ -108,6 +107,7 @@ fun game(navController: NavController, context: Context): String {
                     )
                 }
             }
+            //Recyclerview/lazy for at mindre telefoner kan tilgå hele skærmen
             LazyColumn(modifier = Modifier.width(500.dp),horizontalAlignment = Alignment.CenterHorizontally) {
                 item {
                     Text(text = "Din kategori er: \n $kategori", fontSize = 25.sp, modifier = Modifier
@@ -297,8 +297,8 @@ fun game(navController: NavController, context: Context): String {
                     Text(text = "Point: $allPoints!",fontSize = 35.sp)
 
                 }
-                item {
 
+                item {
                     if(vandt || tabte){
                         val path = context.filesDir
                         var navnInput by rememberSaveable { mutableStateOf("") }
@@ -311,18 +311,6 @@ fun game(navController: NavController, context: Context): String {
                         }, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-
-                                    //println((BufferedReader(FileReader("$path/test2.txt")).readLines()).size.toString()+" Så stor er den")
-
-                                    /*for (string in 0..BufferedReader(FileReader("$path/test2.txt")).readLines().size-1){
-                                        val result = BufferedReader(FileReader("$path/test2.txt")).readLines().get(string)
-                                        val s2 = result.replace("[^0-9]".toRegex(), "")
-                                        val s3 = s2.toInt()
-                                        println(s3)
-                                        if(allPoints > s3) break
-
-                                    }*/
-                                    //val textfil = BufferedReader(FileReader("$path/test2.txt")).readText()
 
                                     BufferedWriter(FileWriter("$path/test2.txt",true)).use {it.write("$allPoints - $navnInput\n")}
 
@@ -343,7 +331,7 @@ fun game(navController: NavController, context: Context): String {
     return svar
 }
 
-
+//pointsystem som tager lykkehjulets nuværende rotation og tildeler point efter grad
 @Composable
 private fun pointSystem(rotation : Float): Int {
     var points = 0
