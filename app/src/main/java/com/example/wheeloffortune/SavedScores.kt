@@ -7,15 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.Text
-import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -30,7 +24,7 @@ import java.io.FileReader
 
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun SavedScores(navController: NavController) {
     Box() {
         Image(
             painterResource(id = R.drawable.rainbow),
@@ -39,13 +33,12 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxHeight()
                 .scale(3f, 4f)
         )
-        LazyColumn(
-            modifier = Modifier.width(500.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    }
+        LazyColumn() {
             item {
+
                 Text(
-                    "Velkommen til Lykkehjulet!",
+                    "Hall Of Fame!",
                     fontFamily = FontFamily.Serif,
                     fontSize = 30.sp,
                     textAlign = TextAlign.Center,
@@ -54,52 +47,42 @@ fun HomeScreen(navController: NavController) {
                 )
             }
             item {
-                var currentRotation by rememberSaveable() { mutableStateOf(0f) }
-                lykkehjul(rotation = currentRotation)
-                currentRotation += 0.5f
-                if (currentRotation >= 5000f) currentRotation = 0f
+                Text(text = "Herunder kan du se tidligere gemte scores", fontSize = 20.sp)
             }
             item {
                 Button(
-                    onClick = { navController.navigate("PlayScreen") }, modifier = Modifier
+                    onClick = { navController.navigate("HomeScreen") }, modifier = Modifier
                         .fillMaxWidth()
                         .padding(20.dp)
                 ) {
-                    Text(text = "Start spillet", fontSize = 35.sp)
+                    Text(text = "Tilbage til forside", fontSize = 30.sp)
                 }
+
             }
             item {
-                Button(
-                    onClick = { navController.navigate("SavedScores") }, modifier = Modifier
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
                         .fillMaxWidth()
-                        .padding(20.dp)
-
+                        .padding(40.dp, 20.dp, 40.dp, 20.dp)
+                        .border(25.dp, Color(100, 0, 200), RoundedCornerShape(200.dp))
+                        .scale(.8f)
+                        .absoluteOffset(0.dp, 10.dp)
                 ) {
-                    Text(text = "Hall of Fame", fontSize = 30.sp)
+
+                        highScores(navController = navController)
+
                 }
 
             }
-
         }
-    }
-}
-@Composable
-private fun lykkehjul(rotation : Float){
-    Image(
-        painterResource(R.drawable.arrow),
-        contentDescription = "pil",
-        modifier = Modifier
-            .size(40.dp)
-            .rotate(180f)
-            .absoluteOffset(0.dp, -(20).dp)
 
-    )
-    Image(
-        painterResource(R.drawable.lykkehjullet),
-        contentDescription = "Lykkehjul",
-        modifier = Modifier
-            .padding(0.dp, 15.dp, 0.dp, 0.dp)
-            .size(300.dp)
-            .rotate(rotation)
-    )
+}
+
+@Composable
+private fun highScores(navController: NavController) {
+    val path = navController.context.filesDir
+    if(File("$path/test2.txt").canRead()){
+        val reader = BufferedReader(FileReader("$path/test2.txt"))
+        return Text(text = reader.readText(), fontSize = 30.sp, textAlign = TextAlign.Center)
+    }
 }
